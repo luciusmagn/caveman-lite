@@ -7,12 +7,10 @@
 ```common-lisp
 (defparameter *web* (make-instance '<app>))
 
-@route GET "/"
-(defun index ()
+(defroute index "/" ()
   (render #P"index.tmpl"))
 
-@route GET "/hello"
-(defun say-hello (&key (|name| "Guest"))
+(defroute say-hello "/hello" (&key (|name| "Guest"))
   (format nil "Hello, ~A" |name|))
 ```
 
@@ -112,24 +110,7 @@ You can also start your application by using [clackup command](https://github.co
 
 ### Routing
 
-Caveman2 provides 2 ways to define a route -- `@route` and `defroute`. You can use either.
-
-`@route` is an annotation macro, defined by using [cl-annot](https://github.com/arielnetworks/cl-annot). It takes a method, a URL-string, and a function.
-
-```common-lisp
-@route GET "/"
-(defun index ()
-  ...)
-
-;; A route with no name.
-@route GET "/welcome"
-(lambda (&key (|name| "Guest"))
-  (format nil "Welcome, ~A" |name|))
-```
-
-This is similar to Caveman1's `@url` except for its argument list. You don't have to specify an argument when it is not required.
-
-`defroute` is just a macro. It provides the same functionality as `@route`.
+Use the `defroute` macro to define routes.
 
 ```common-lisp
 (defroute index "/" ()
@@ -144,27 +125,21 @@ Since Caveman bases on ningle, Caveman also has the [Sinatra](http://www.sinatra
 
 ```common-lisp
 ;; GET request (default)
-@route GET "/" (lambda () ...)
 (defroute ("/" :method :GET) () ...)
 
 ;; POST request
-@route POST "/" (lambda () ...)
 (defroute ("/" :method :POST) () ...)
 
 ;; PUT request
-@route PUT "/" (lambda () ...)
 (defroute ("/" :method :PUT) () ...)
 
 ;; DELETE request
-@route DELETE "/" (lambda () ...)
 (defroute ("/" :method :DELETE) () ...)
 
 ;; OPTIONS request
-@route OPTIONS "/" (lambda () ...)
 (defroute ("/" :method :OPTIONS) () ...)
 
 ;; For all methods
-@route ANY "/" (lambda () ...)
 (defroute ("/" :method :ANY) () ...)
 ```
 

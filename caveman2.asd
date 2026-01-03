@@ -18,7 +18,6 @@
                "lack-response"
                "cl-project"
                "dbi"
-               "cl-syntax-annot"
                "myway"
                "quri")
   :components ((:module "v2/src"

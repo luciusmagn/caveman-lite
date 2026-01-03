@@ -9,9 +9,6 @@
                "cl-ppcre"
                "uiop"
 
-               ;; for @route annotation
-               "cl-syntax-annot"
-
                ;; HTML Template
                "djula"
 

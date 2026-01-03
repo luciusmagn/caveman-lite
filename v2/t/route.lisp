@@ -7,7 +7,7 @@
                 :call))
 (in-package :caveman2-test.route)
 
-(plan 22)
+(plan 14)
 
 (defvar *app*)
 
@@ -115,83 +115,6 @@
                          :headers ,(make-hash-table))))
     '("Hello again")
     "Full")
-
-(syntax:use-syntax :annot)
-
-(setf *app* (make-instance '<app>))
-
-@route GET "/"
-(defun index ()
-  "Welcome")
-@route (GET POST) "/new"
-(defun new ()
-  "Create something")
-@route GET "/myname"
-(lambda (&key |name|)
-  (if |name|
-      (format nil "My name is ~A." |name|)
-      "I have no name yet."))
-@route GET "/hello"
-@route GET "/hello/:name"
-(defun say-hello (&key (name "Guest"))
-  (format nil "Hello, ~A" name))
-
-(is (third (call *app* `(:path-info "/"
-                         :query-string ""
-                         :raw-body (flex:make-in-memory-input-stream #())
-                         :request-method :get
-                         :headers ,(make-hash-table))))
-    '("Welcome")
-    "@route")
-(is (third (call *app* `(:path-info "/new"
-                         :query-string ""
-                         :raw-body (flex:make-in-memory-input-stream #())
-                         :request-method :get
-                         :headers ,(make-hash-table))))
-    '("Create something")
-    "@route")
-(is (third (call *app* `(:path-info "/new"
-                         :query-string ""
-                         :raw-body (flex:make-in-memory-input-stream #())
-                         :request-method :post
-                         :headers ,(make-hash-table))))
-    '("Create something")
-    "@route")
-(is (third (call *app* `(:path-info "/myname"
-                         :query-string ""
-                         :raw-body (flex:make-in-memory-input-stream #())
-                         :request-method :get
-                         :headers ,(make-hash-table))))
-    '("I have no name yet.")
-    "@route")
-(is (third (call *app* `(:path-info "/myname"
-                         :query-string "name=Eitaro"
-                         :raw-body (flex:make-in-memory-input-stream #())
-                         :request-method :get
-                         :headers ,(make-hash-table))))
-    '("My name is Eitaro.")
-    "@route")
-(is (third (call *app* `(:path-info "/hello"
-                         :query-string ""
-                         :raw-body (flex:make-in-memory-input-stream #())
-                         :request-method :get
-                         :headers ,(make-hash-table))))
-    '("Hello, Guest")
-    "@route")
-(is (third (call *app* `(:path-info "/hello/Eitaro"
-                         :query-string ""
-                         :raw-body (flex:make-in-memory-input-stream #())
-                         :request-method :get
-                         :headers ,(make-hash-table))))
-    '("Hello, Eitaro")
-    "@route")
-(is (third (call *app* `(:path-info "/hello/Eitaro"
-                         :query-string "id=12345"
-                         :raw-body (flex:make-in-memory-input-stream #())
-                         :request-method :get
-                         :headers ,(make-hash-table))))
-    '("Hello, Eitaro")
-    "@route")
 
 (defroute add-item (*app* "/post" :method :post) (&key _parsed)
   (with-output-to-string (s)

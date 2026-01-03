@@ -1,18 +1,11 @@
 (in-package :cl-user)
 (defpackage caveman2.route
-  (:use :cl
-        :cl-annot)
+  (:use :cl)
   (:import-from :caveman2.app
                 :find-package-app)
   (:import-from :caveman2.nested-parameter
                 :parse-parameters)
-  (:import-from :cl-annot.util
-                :progn-form-last
-                :progn-form-replace-last
-                :definition-form-symbol
-                :definition-form-type)
   (:export :defroute
-           :route
            :*parsed-parameters-symbol-name*))
 (in-package :caveman2.route)
 
@@ -116,58 +109,3 @@
                                      ,@body))
                                  body))))))
       (T `(defroute (,(car args)) ,@(cdr args))))))
-
-(defun canonicalize-method (method)
-  (etypecase method
-    (list (mapcar #'canonicalize-method method))
-    (keyword method)
-    (symbol (intern (symbol-name method) :keyword))))
-
-(defannotation route (method routing-rule form)
-    (:arity 3)
-  (let* ((params (gensym "PARAMS"))
-         (last-form (progn-form-last form))
-         (type (definition-form-type last-form))
-         (symbol (definition-form-symbol last-form))
-         lambda-list)
-    (ecase type
-      (cl:lambda
-          (setf lambda-list (second last-form))
-          `(setf (apply #'ningle:route
-                  (append
-                   ,(add-app-if-omitted routing-rule)
-                   (list :method ',(canonicalize-method method))))
-            (lambda (,params)
-              (declare (ignorable ,params))
-              ,(if lambda-list
-                   `(apply ,form ,(if (need-parsed-parameters lambda-list)
-                                      `(append (list
-                                                ,(intern *parsed-parameters-symbol-name* :keyword)
-                                                (parse-parameters ,params))
-                                               ,(params-form params lambda-list))
-                                      (params-form params lambda-list)))
-                   `(funcall ,form)))))
-      (cl:defun
-          (setf lambda-list (third last-form))
-          `(progn
-             (setf (apply #'ningle:route
-                          (append
-                           ,(add-app-if-omitted routing-rule)
-                           (list :method ',(canonicalize-method method)
-                                 :identifier ',symbol)))
-                   (lambda (,params)
-                     (declare (ignorable ,params))
-                     ,(if lambda-list
-                          `(apply (function ,symbol)
-                                  ,(if (need-parsed-parameters lambda-list)
-                                       `(append (list
-                                                 ,(intern *parsed-parameters-symbol-name* :keyword)
-                                                 (parse-parameters ,params))
-                                                ,(params-form params lambda-list))
-                                       (params-form params lambda-list)))
-                          `(funcall (function ,symbol)))))
-             ,(progn-form-replace-last
-               (list* (first last-form) (second last-form)
-                      (make-lambda-list lambda-list)
-                      (cdddr last-form))
-               form))))))
